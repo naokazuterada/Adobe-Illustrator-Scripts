@@ -1,132 +1,1 @@
-/*
-	-----------------------------------------------------------------------------------------
-	SaveAsPDFByLayers
-	Javascript for Adobe Illustrator CS
-		
-	auther 	: TERADA Naokazu
-	date		: 2009.06
-
-	http://kocoha.net/
-	http://karappo.net/
-	-----------------------------------------------------------------------------------------
-	
-	description ( in Japanese ):
-	
-	最上位階層にあるレイヤーごとにPDFで保存します。
-
-	・	実行後にダイアログが表示されますので、保存先を指定してください。
-	
-	・	あらかじめロックされているレイヤーは無視されるので、
-		ヘッダーフッターなどの共通部分を含むレイヤーは「表示・ロック」しておくと便利です。
-
-	・	「非表示・ロック」になっているレイヤーも非表示のまま書き出し対象になりますので、
-		不必要なレイヤーはあらかじめ破棄しておくことをお勧めします。
-
-	・	書き出されたPDFのファイル名の接頭数字は３桁でつくので、
-		Acrobatで一気に読みこんで、順番入れ替え作業がいらないので便利です。
-*/
-
-
-
-// 必要な場合は、ここで設定してください。
-// <PDFで保存するのオプション設定>
-var saveOpts = new PDFSaveOptions();
-saveOpts.compatibility = PDFCompatibility.ACROBAT8; 	// PDFバージョン
-saveOpts.preserveEditability = false;							// Illustratorの編集機能を保持
-saveOpts.generateThumbnails = true;						// サムネールを埋め込み
-saveOpts.optimization = false;									// web表示用に最適化
-saveOpts.viewAfterSaving = false;								// 保存後PDFファイルを表示
-saveOpts.acrobatLayers = false;								// 上位レベルのレイヤーからAcrobat
-
-// --------------------------------------------------------------------------------------------
-
-// いちばん上の階層にあるレイヤーを保持する配列
-var rootLayers;
-
-// PDFの保存先を指定
-var destFolder = Folder.selectDialog( 'PDFファイルの保存先を指定してください。\nその場所に「[連番]_[レイヤー名].pdf」という名前で保存されます。');
-
-
-var targetDocument = activeDocument;
-
-// 上から順に
-var currentLayerIndex = 0;
-setRootLayers();
-var layerCount = rootLayers.length;
-for (var i = layerCount - 1; i >= 0; i-- ) 
-{
-		var targetLayer = rootLayers[i];
-		
-		deleteAllUnlockedLayersButThis( rootLayers, targetLayer );
-		
-		if( !targetLayer.visible ) targetLayer.visible = true;
-		
-		// 接頭の連番３桁にする
-		var preNum ="000"+String(currentLayerIndex+1);
-		preNum = preNum.substr (preNum.length-3, 3);
-		// ファイル名
-		var _filename = preNum+"_"+targetLayer.name;
-		// 保存先のフルパス
-		var _path = destFolder+"/"+_filename;
-		// PDFで保存
-		saveFileToPDF( _path );
-		
-		// レイヤーを消す前に戻る
-		app.undo();
-		// 一度保存した後、アンドゥしてもrootLayers参照が切れてしまうのでここで毎回設定する
-		setRootLayers();
-		
-		currentLayerIndex++;
-}
-
-alert("PDFの書き出しを完了しました");
-
-// --------------------------------------------------------------------------------------------
-	
-// いちばん上の階層にあるレイヤーをrootLayersに保持する(ロックされてるのは除外)
-function setRootLayers()
-{
-		// 初期化
-		rootLayers = new Array();
-		
-		var layerCount = targetDocument.layers.length;
-		for (var i = layerCount - 1; i >= 0; i-- ) 
-		{
-				var targetLayer = targetDocument.layers[i];
-				if ( ( targetLayer.parent == targetDocument ) && ( !targetLayer.locked ) )
-				{
-						rootLayers.push(targetLayer);
-				}
-		}
-		// $.write( vLayers.length );
-}
-
-//　PDFで保存
-function saveFileToPDF ( dest ) 
-{
-		var saveName = new File ( dest );
-		targetDocument.saveAs( saveName, saveOpts );
-		// $.writeln(saveName+"を保存しました" );
-}
-
-// 第一引数の配列の中にあるレイヤーのうち、例外レイヤーでないやつを消去
-function deleteAllUnlockedLayersButThis( _layers, _exception )
-{
-		for (var i = _layers.length - 1; i >= 0; i-- ) 
-		{
-				var targetLayer = _layers[i];
-				if ( targetLayer != _exception )
-				{
-						// TODO:（なぜか調べる）これやっとかないとapp落ちる!
-						if( !targetLayer.visible ) targetLayer.visible = true;
-						
-						// レイヤー削除
-						//$.write( targetLayer+"を消去します" );
-						targetLayer.remove();
-						//$.writeln( "（消去しました）" );
-				}
-		}
-}
-
-
-
+﻿/*	--------------------------------------------	SaveAsPDFByLayers	Javascript for Adobe Illustrator CS			auther 	: TERADA Naokazu	release	: 2009.6	update	: 2013.5		http://karappo.net/	--------------------------------------------	description ( in Japanese ):		最上位階層にあるレイヤーごとにPDFで保存します。	・	実行後にダイアログが表示されますので、保存先を指定してください。		・	あらかじめロックされているレイヤーは無視されるので、		ヘッダーフッターなどの共通部分を含むレイヤーは「表示・ロック」しておくと便利です。	・	「非表示・ロック」になっているレイヤーも非表示のまま書き出し対象になりますので、		不必要なレイヤーはあらかじめ破棄しておくことをお勧めします。	・	書き出されたPDFのファイル名の接頭数字は３桁でつくので、		Acrobatで一気に読みこんで、順番入れ替え作業がいらないので便利です。*/var doc,rootLayers;var saveOpts = new PDFSaveOptions();if ( 0<app.documents.length ) {	doc = app.activeDocument;  if(!doc.saved){  	alert("このスクリプトの実行前にドキュメントを保存しておいてください。\nThis script needs to modify your document. Please save it before running this script.");  }else{  	var w = new Window("dialog","Save as PDF by layers",[100,100,600,410],{closeButton:true,resizable:true}); // -> [^FootNote1]  	// w.radiog = w.add("group",[20,20,260,140],"レイヤーの順番");  	w.panel = w.add('panel', {x:20, y:25, width:460, height:70}, "レイヤーとページの並び順", {borderStyle:"sunken"});		w.panel.rd_down = w.panel.add('radiobutton',{x:20, y:20, width:300, height:20},'上から下へ');		w.panel.rd_up 	= w.panel.add('radiobutton',{x:20, y:40, width:300, height:20},'下から上へ');		w.add("statictext",{x:20, y:123, width:80, height:20},"PDF version:");		w.dd = w.add('dropdownlist', {x:95, y:120, width:140, height:20},['Acrobat version 4','Acrobat version 5','Acrobat version 6','Acrobat version 7','Acrobat version 8']);		w.cb_1 = w.add('checkbox',{x:20, y:160, width:300, height:20},'Illustratorの編集機能を保持');		w.cb_2 = w.add('checkbox',{x:20, y:180, width:300, height:20},'サムネールを埋め込み');		w.cb_3 = w.add('checkbox',{x:20, y:200, width:300, height:20},'web表示用に最適化');		w.cb_4 = w.add('checkbox',{x:20, y:220, width:300, height:20},'保存後PDFファイルを表示');		w.cb_5 = w.add('checkbox',{x:20, y:240, width:300, height:20},'上位レベルのレイヤーからAcrobat');		w.bt_cancel = w.add('button',{x:310, y:270, width:80, height:20},'Cancel');		w.bt_ok 		= w.add('button',{x:400, y:270, width:80, height:20},'OK');		w.panel.rd_down.value = true;		w.dd.selection = 4;		w.cb_1.value = false;		w.cb_2.value = true;		w.cb_3.value = false;		w.cb_4.value = false;		w.cb_5.value = false;		w.bt_ok.onClick = function() {		  w.close();		  // PDF version		  var pdfv = PDFCompatibility.ACROBAT8;		  if(w.dd.selection = 'Acrobat version 4') 			pdfv = PDFCompatibility.ACROBAT4;		  else if(w.dd.selection = 'Acrobat version 5') pdfv = PDFCompatibility.ACROBAT5;		  else if(w.dd.selection = 'Acrobat version 6') pdfv = PDFCompatibility.ACROBAT6;		  else if(w.dd.selection = 'Acrobat version 7') pdfv = PDFCompatibility.ACROBAT7;		  		  // settings		  saveOpts.compatibility = pdfv;			saveOpts.preserveEditability = w.cb_1.value;			saveOpts.generateThumbnails = w.cb_2.value;			saveOpts.optimization = w.cb_3.value;			saveOpts.viewAfterSaving = w.cb_4.value;			saveOpts.acrobatLayers = w.cb_5.value;			// order			var def_order = w.panel.rd_down.value;		  main(def_order);		}		w.bt_cancel.onClick = function() {		  w.close();		}		w.center();		w.show();  }}else{	alert("ドキュメントを開いてから実行してください。\nYou must open at least one document.");}// -----function main(order){	// PDFの保存先を指定	var destFolder = Folder.selectDialog( 'PDFファイルの保存先を指定してください。\nファイル名「[連番]_[レイヤー名].pdf」で保存されます。');	if(!destFolder) return;	// 一度保存した後、アンドゥしてもrootLayers参照が切れてしまうのでここで毎回setRootLayersする	for (var i = 0,setRootLayers(!order); i<rootLayers.length; i++,setRootLayers(!order)){	  var targetLayer = rootLayers[i];	  	  deleteAllUnlockedLayersButThis( rootLayers, targetLayer );	  	  if( !targetLayer.visible ) targetLayer.visible = true;	  	  // 接頭の連番３桁にする	  var prefix ="000"+String(i+1);	  prefix = prefix.substr (prefix.length-3, 3);	  var _filename = prefix+"_"+targetLayer.name;	  var _path = destFolder+"/"+_filename;	  saveFileToPDF( _path );	  	  app.undo();	}	alert("PDFの書き出しを完了しました");}	// いちばん上の階層にあるレイヤーをrootLayersに保持する(ロックされてるのは除外)function setRootLayers(reverse){	// init	rootLayers = new Array();	for (var i = 0; i<doc.layers.length; i++ ){		var targetLayer = doc.layers[i];		if( ( targetLayer.parent == doc ) && ( !targetLayer.locked ) ){			rootLayers.push(targetLayer);		}	}	if(reverse){		rootLayers.reverse();	}}function saveFileToPDF ( dest ){		var saveName = new File ( dest );		doc.saveAs( saveName, saveOpts );		// $.writeln("saved: "saveName);}// 第一引数の配列の中にあるレイヤーのうち、例外レイヤーでないやつを消去function deleteAllUnlockedLayersButThis( _layers, _exception ){	for (var i = 0; i<_layers.length; i++ ) {		var targetLayer = _layers[i];		if ( targetLayer != _exception ){			// TODO:（なぜか調べる）これやっとかないとapp落ちる!			if( !targetLayer.visible ) targetLayer.visible = true;						// レイヤー削除			//$.write( targetLayer+"will delete.");			targetLayer.remove();			//$.writeln( "...done" );		}	}}/*[^FootNote1]:typeをpaletteにするとapp.activeDocumentが取得できなくなるtype "palette" and "window" can not directly communicate with Illustrator.http://forums.adobe.com/message/4532692#4532692http://forums.adobe.com/thread/1097829*/
