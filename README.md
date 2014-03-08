@@ -11,15 +11,12 @@
 
 ## Contents
 
-<!-- MarkdownTOC depth=2 -->
+- SaveAsPDFByLayers
+- DeleteAllHiddens
+- SaveAsPNG
 
-- [SaveAsPDFByLayers][saveaspdfbylayers]
-- [DeleteAllHiddens][deleteallhiddens]
-- [SaveAsPNG][saveaspng]
 
-<!-- /MarkdownTOC -->
-
-## SaveAsPDFByLayers[saveaspdfbylayers]
+## SaveAsPDFByLayers
 
 ### 特徴
 
@@ -41,7 +38,7 @@
 
 
 
-## DeleteAllHiddens[deleteallhiddens]
+## DeleteAllHiddens
 
 ### 特徴
 
@@ -55,9 +52,9 @@
 3.子要素がなくなったレイヤーの消去（クリーンナップ）
 
 
-[SaveAsPDFByLayers](saveaspdfbylayers)の使用前に使うと便利かと思います。
+SaveAsPDFByLayersの使用前に使うと便利かと思います。
 
 
-## SaveAsPNG[saveaspng]
+## SaveAsPNG
 
 PDFで保存します。
